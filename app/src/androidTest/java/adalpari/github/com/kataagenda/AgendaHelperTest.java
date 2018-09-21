@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -21,7 +22,7 @@ import adalpari.github.com.kataagenda.model.Contact;
 /**
  * Created by Adalberto Plaza on 21/09/2018.
  */
-public class MainActivityTest {
+public class AgendaHelperTest {
 
     private Contact contact1;
     private Contact contact2;
@@ -31,6 +32,8 @@ public class MainActivityTest {
     private AgendaHelper agendaHelper;
     private SharedPreferences sharedPreferences;
 
+    private AgendaApiClientMock agendaApiClientMock;
+
     @Before
     public void setUp() {
         address = new Address("12345", "Elm Street");
@@ -38,8 +41,10 @@ public class MainActivityTest {
         contact1 = new Contact("1","Jhon", "JJhon", address, company);
         contact2 = new Contact("2","Mike", "MMike", address, company);
 
+        agendaApiClientMock = new AgendaApiClientMock();
+
         sharedPreferences = getInstrumentation().getTargetContext().getSharedPreferences("KataAgenda", Context.MODE_PRIVATE);
-        agendaHelper = new AgendaHelper(sharedPreferences);
+        agendaHelper = new AgendaHelper(sharedPreferences, agendaApiClientMock);
     }
 
     @Test
@@ -68,6 +73,15 @@ public class MainActivityTest {
         List<Contact> contacts = agendaHelper.getAllContacts();
 
         Assert.assertEquals(2, contacts.size());
+    }
+
+    @Test
+    public void shouldRetrieveEmptyContactsWhenThereAreNot() {
+        agendaHelper.deleteAllContacts();
+
+        List<Contact> contacts = agendaHelper.getAllContacts();
+
+        Assert.assertEquals(0, contacts.size());
     }
 
     @Test
@@ -101,6 +115,15 @@ public class MainActivityTest {
         Assert.assertEquals(contactsMatching, actualMatchedContacts);
     }
 
+    @Test
+    public void syncShouldAddAllContacts() {
+        agendaHelper.syncContacts();
+
+        List<Contact> contacts = agendaHelper.getAllContacts();
+
+        Assert.assertEquals(2, contacts.size());
+    }
+
     private String generateName() {
         byte[] array = new byte[7]; // length is bounded by 7
         new Random().nextBytes(array);
@@ -110,5 +133,16 @@ public class MainActivityTest {
     @After
     public void tearDown() {
         sharedPreferences.edit().clear().commit();
+    }
+
+    class AgendaApiClientMock extends AgendaAPIClient {
+        @Override
+        public List<Contact> getAll() {
+            List<Contact> contacts = new ArrayList<>();
+            contacts.add(contact1);
+            contacts.add(contact2);
+
+            return contacts;
+        }
     }
 }

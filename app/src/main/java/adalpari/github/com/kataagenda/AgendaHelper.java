@@ -17,9 +17,17 @@ import adalpari.github.com.kataagenda.model.Contact;
 public class AgendaHelper {
 
     private final SharedPreferences sharedPreferences;
+    private final AgendaAPIClient agendaAPIClient;
 
-    public AgendaHelper(SharedPreferences sharedPreferences) {
+    public AgendaHelper(SharedPreferences sharedPreferences, AgendaAPIClient agendaAPIClient) {
         this.sharedPreferences = sharedPreferences;
+        this.agendaAPIClient = agendaAPIClient;
+    }
+
+    private void addAllContacts(List<Contact> contacts) {
+        for (Contact contact : contacts) {
+            add(contact);
+        }
     }
 
     public void add(Contact contact) {
@@ -55,6 +63,14 @@ public class AgendaHelper {
     public void deleteAllContacts() {
         sharedPreferences.edit().clear().commit();
     }
+
+    public void syncContacts() {
+        List<Contact> contacts = agendaAPIClient.getAll();
+
+        deleteAllContacts();
+        addAllContacts(contacts);
+    }
+
 
     public int getNumberOfContactsContaining(String string) {
         List<Contact> contacts = getAllContacts();
