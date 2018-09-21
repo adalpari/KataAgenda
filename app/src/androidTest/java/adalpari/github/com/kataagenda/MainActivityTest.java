@@ -10,7 +10,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Random;
 
 import adalpari.github.com.kataagenda.model.Address;
 import adalpari.github.com.kataagenda.model.Company;
@@ -23,15 +25,18 @@ public class MainActivityTest {
 
     private Contact contact1;
     private Contact contact2;
+    private Address address;
+    private Company company;
+
     private AgendaHelper agendaHelper;
     private SharedPreferences sharedPreferences;
 
     @Before
     public void setUp() {
-        final Address address = new Address("12345", "Elm Street");
-        final Company company = new Company("Bundee", 98765432);
+        address = new Address("12345", "Elm Street");
+        company = new Company("Bundee", 98765432);
         contact1 = new Contact("1","Jhon", "JJhon", address, company);
-        contact2 = new Contact("2","Jhon", "JJhon", address, company);
+        contact2 = new Contact("2","Mike", "MMike", address, company);
 
         sharedPreferences = getInstrumentation().getTargetContext().getSharedPreferences("KataAgenda", Context.MODE_PRIVATE);
         agendaHelper = new AgendaHelper(sharedPreferences);
@@ -50,9 +55,9 @@ public class MainActivityTest {
     public void shouldReturnNullForNonExistentContact() {
         agendaHelper.add(contact1);
 
-        Contact retrievedContact = agendaHelper.getById(contact2.getId());
+        Contact retrievedContact = agendaHelper.getById("-9");
 
-        Assert.assertEquals(null, retrievedContact);
+        Assert.assertNull(retrievedContact);
     }
 
     @Test
@@ -65,8 +70,45 @@ public class MainActivityTest {
         Assert.assertEquals(2, contacts.size());
     }
 
+    @Test
+    public void shouldRemoveAllContacts() {
+        agendaHelper.add(contact1);
+        agendaHelper.add(contact2);
+
+        agendaHelper.deleteAllContacts();
+        List<Contact> contacts = agendaHelper.getAllContacts();
+
+        Assert.assertEquals(0, contacts.size());
+    }
+
+    @Test
+    public void shouldReturnNumberOfContactsContaining() {
+        String matchWith = "j";
+        int contactsMatching = 0;
+
+        for (int i=0; i<100; i++) {
+            String generatedName = generateName();
+            Contact contact = new Contact(i+"", generatedName, generatedName, address, company);
+            agendaHelper.add(contact);
+
+            if (generatedName.contains(matchWith)) {
+                contactsMatching++;
+            }
+        }
+
+        int actualMatchedContacts = agendaHelper.getNumberOfContactsContaining(matchWith);
+
+        Assert.assertEquals(contactsMatching, actualMatchedContacts);
+    }
+
+    private String generateName() {
+        byte[] array = new byte[7]; // length is bounded by 7
+        new Random().nextBytes(array);
+        return new String(array, Charset.forName("UTF-8"));
+    }
+
     @After
     public void tearDown() {
-        sharedPreferences.edit().clear();
+        sharedPreferences.edit().clear().commit();
     }
 }

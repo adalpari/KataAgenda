@@ -52,6 +52,23 @@ public class AgendaHelper {
         return contacts;
     }
 
+    public void deleteAllContacts() {
+        sharedPreferences.edit().clear().commit();
+    }
+
+    public int getNumberOfContactsContaining(String string) {
+        List<Contact> contacts = getAllContacts();
+        int numberOfMatches = 0;
+
+        for (Contact contact :  contacts) {
+            if (contact.getName().contains(string)) {
+                numberOfMatches++;
+            }
+        }
+
+        return numberOfMatches;
+    }
+
     private String toJson(Contact contact) {
         return new Gson().toJson(contact);
     }
