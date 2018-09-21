@@ -5,6 +5,10 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import adalpari.github.com.kataagenda.model.Contact;
 
 /**
@@ -19,7 +23,8 @@ public class AgendaHelper {
     }
 
     public void add(Contact contact) {
-        sharedPreferences.edit().putString(contact.getId(), toJson(contact));
+        String serializedContact = toJson(contact);
+        sharedPreferences.edit().putString(contact.getId(), serializedContact).commit();
     }
 
     public @Nullable Contact getById(String id) {
@@ -32,8 +37,23 @@ public class AgendaHelper {
         }
     }
 
+    public List<Contact> getAllContacts() {
+        Map<String, ?> allContacts = sharedPreferences.getAll();
+
+        List<Contact> contacts = new ArrayList<>();
+
+        for (Map.Entry<String, ?> entry : allContacts.entrySet()) {
+            if (entry.getValue() instanceof String) {
+                String serialisedContact = (String) entry.getValue();
+                contacts.add(fromJson(serialisedContact));
+            }
+        }
+
+        return contacts;
+    }
+
     private String toJson(Contact contact) {
-        return new Gson().toJson(this);
+        return new Gson().toJson(contact);
     }
 
     private Contact fromJson(String serialisedContact) {

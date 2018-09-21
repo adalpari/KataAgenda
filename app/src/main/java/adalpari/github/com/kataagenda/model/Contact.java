@@ -1,5 +1,7 @@
 package adalpari.github.com.kataagenda.model;
 
+import java.util.Objects;
+
 /**
  * Created by Adalberto Plaza on 21/09/2018.
  */
@@ -57,5 +59,23 @@ public class Contact {
 
     public void setCompany(Company company) {
         this.company = company;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Contact contact = (Contact) o;
+        return Objects.equals(id, contact.id) &&
+                Objects.equals(name, contact.name) &&
+                Objects.equals(userName, contact.userName) &&
+                Objects.equals(address, contact.address) &&
+                Objects.equals(company, contact.company);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(id, name, userName, address, company);
     }
 }
